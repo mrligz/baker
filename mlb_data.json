@@ -1,0 +1,390 @@
+[
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-03-24",
+    "team": "Los Angeles Angels",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 3
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-03-30",
+    "team": "Philadelphia Phillies",
+    "opponent": "Washington Nationals",
+    "player_name": "Dylan Moore",
+    "innings": "0.2",
+    "hits_allowed": 1,
+    "runs_allowed": 0,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 2,
+      "away": 12
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-03-30",
+    "team": "Washington Nationals",
+    "opponent": "Philadelphia Phillies",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 13
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-03-30",
+    "team": "Toronto Blue Jays",
+    "opponent": "Colorado Rockies",
+    "player_name": "Tyler Heineman",
+    "innings": "2.0",
+    "hits_allowed": 7,
+    "runs_allowed": 5,
+    "inning_entered": 8,
+    "score_at_entry": {
+      "home": 1,
+      "away": 9
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-03-30",
+    "team": "Colorado Rockies",
+    "opponent": "Toronto Blue Jays",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 14
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-03-31",
+    "team": "Cleveland Guardians",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 1
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-02",
+    "team": "Arizona Diamondbacks",
+    "opponent": "Atlanta Braves",
+    "player_name": "James McCann",
+    "innings": "1.0",
+    "hits_allowed": 7,
+    "runs_allowed": 5,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 1,
+      "away": 12
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-02",
+    "team": "Atlanta Braves",
+    "opponent": "Arizona Diamondbacks",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 17
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-04",
+    "team": "San Francisco Giants",
+    "opponent": "New York Mets",
+    "player_name": "Christian Koss",
+    "innings": "1.0",
+    "hits_allowed": 0,
+    "runs_allowed": 0,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 0,
+      "away": 9
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-04",
+    "team": "New York Mets",
+    "opponent": "San Francisco Giants",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 9
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-06",
+    "team": "Toronto Blue Jays",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": "Tyler Heineman",
+    "innings": "1.0",
+    "hits_allowed": 0,
+    "runs_allowed": 0,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 1,
+      "away": 14
+    }
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-06",
+    "team": "Los Angeles Dodgers",
+    "opponent": "Toronto Blue Jays",
+    "player_name": "Miguel Rojas",
+    "innings": "1.0",
+    "hits_allowed": 1,
+    "runs_allowed": 1,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 1,
+      "away": 14
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-06",
+    "team": "Toronto Blue Jays",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 2
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-06",
+    "team": "Los Angeles Dodgers",
+    "opponent": "Toronto Blue Jays",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 14
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-08",
+    "team": "Kansas City Royals",
+    "opponent": "Cleveland Guardians",
+    "player_name": "Tyler Tolbert",
+    "innings": "0.2",
+    "hits_allowed": 1,
+    "runs_allowed": 0,
+    "inning_entered": 8,
+    "score_at_entry": {
+      "home": 10,
+      "away": 2
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-08",
+    "team": "Cleveland Guardians",
+    "opponent": "Kansas City Royals",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 10
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-08",
+    "team": "Toronto Blue Jays",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 4
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-10",
+    "team": "Cincinnati Reds",
+    "opponent": "Los Angeles Angels",
+    "player_name": "P.J. Higgins",
+    "innings": "1.0",
+    "hits_allowed": 0,
+    "runs_allowed": 0,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 2,
+      "away": 10
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-10",
+    "team": "Los Angeles Angels",
+    "opponent": "Cincinnati Reds",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 10
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-12",
+    "team": "Cleveland Guardians",
+    "opponent": "Atlanta Braves",
+    "player_name": "Austin Hedges",
+    "innings": "0.1",
+    "hits_allowed": 0,
+    "runs_allowed": 0,
+    "inning_entered": 8,
+    "score_at_entry": {
+      "home": 13,
+      "away": 1
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-12",
+    "team": "Atlanta Braves",
+    "opponent": "Cleveland Guardians",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 13
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-13",
+    "team": "Washington Nationals",
+    "opponent": "Pittsburgh Pirates",
+    "player_name": "Joey Wiemer",
+    "innings": "1.0",
+    "hits_allowed": 2,
+    "runs_allowed": 1,
+    "inning_entered": 8,
+    "score_at_entry": {
+      "home": 15,
+      "away": 5
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-13",
+    "team": "Pittsburgh Pirates",
+    "opponent": "Washington Nationals",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 16
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-15",
+    "team": "Philadelphia Phillies",
+    "opponent": "Chicago Cubs",
+    "player_name": "Dylan Moore",
+    "innings": "1.0",
+    "hits_allowed": 0,
+    "runs_allowed": 1,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 1,
+      "away": 10
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-15",
+    "team": "Chicago Cubs",
+    "opponent": "Philadelphia Phillies",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 11
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-04-15",
+    "team": "Chicago White Sox",
+    "opponent": "Tampa Bay Rays",
+    "player_name": "Reese McGuire",
+    "innings": "1.0",
+    "hits_allowed": 0,
+    "runs_allowed": 0,
+    "inning_entered": 9,
+    "score_at_entry": {
+      "home": 0,
+      "away": 8
+    }
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-15",
+    "team": "Tampa Bay Rays",
+    "opponent": "Chicago White Sox",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 8
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-04-15",
+    "team": "New York Mets",
+    "opponent": "Los Angeles Dodgers",
+    "player_name": null,
+    "innings": null,
+    "hits_allowed": null,
+    "runs_allowed": null,
+    "inning_entered": null,
+    "score_at_entry": null,
+    "team_runs": 2
+  }
+]
