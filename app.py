@@ -76,8 +76,8 @@ st.header("📊 Team Summary")
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Used Position Pitcher", len(used))
-col2.metric("Faced Position Pitcher", len(faced))
+col1.metric("Used Baker", len(used))
+col2.metric("Faced Baker", len(faced))
 
 col3.metric(
     "Runs Scored vs Baker",
@@ -85,7 +85,7 @@ col3.metric(
 )
 
 col4.metric(
-    "Runs Allowed Using Position Pitcher",
+    "Runs Allowed Using Baker",
     int(used["runs_allowed"].sum()) if len(used) > 0 else 0
 )
 
