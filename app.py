@@ -188,25 +188,30 @@ if logo_url:
 """, unsafe_allow_html=True)
 
 # ============================================================
-# TEAM SELECTOR
+# TEAM SELECTOR (FIXED - NO 1 CLICK BUG)
 # ============================================================
 st.markdown("### 🏟️ Select Team")
+
+selected_team = st.session_state.selected_team
 
 cols = st.columns(6)
 
 for i, team in enumerate(teams):
     col = cols[i % 6]
-    is_selected = st.session_state.selected_team == team
 
+    # stable selection check
+    is_selected = st.session_state.get("selected_team", "All Teams") == team
+
+    # IMPORTANT FIX: store click FIRST, then rerun immediately
     if col.button(
         format_team_label(team),
         key=f"team_{team}",
         use_container_width=True,
         type="primary" if is_selected else "secondary"
     ):
-        st.session_state.selected_team = team
-
-selected_team = st.session_state.selected_team
+        if st.session_state.selected_team != team:
+            st.session_state.selected_team = team
+            st.rerun()
 
 # ============================================================
 # FILTER
