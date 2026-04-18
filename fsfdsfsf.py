@@ -253,62 +253,9 @@ with tab1:
 # USED LOGS
 # ============================================================
 with log_tab1:
-
-    if len(used) > 0:
-
-        used_display = used.rename(columns={
-            "date": "Date",
-            "opponent": "Opponent",
-            "player_name": "Baker",
-            "inning_entered": "Inning Entered",
-            "inning_exited": "Inning Exited",
-
-            "IP": "IP",
-            "H": "Hits",
-            "R": "Runs",
-            "ER": "ER",
-            "BB": "BB",
-            "K": "K",
-            "HR": "HR",
-            "ERA": "ERA",
-
-            "entry_run_diff": "Entry Diff",
-            "final_run_diff": "Final Diff",
-            "run_line": "Run Line",
-            "run_line_result": "Result"
-        })
-
-        
-        used_display["Opponent"] = used_display["Opponent"].apply(
-            lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
-        )
-
-        st.markdown(
-            used_display.sort_values("Date", ascending=False)[
-                [
-                    "Date",
-                    "Opponent",
-                    "Baker",
-                    "Inning Entered",
-                    "Inning Exited",
-
-                    "IP",
-                    "Hits",
-                    "Runs",
-                    "ER",
-                    "BB",
-                    "K",
-                    "HR",
-                    "ERA",
-
-                    "Entry Diff",
-                    "Final Diff",
-                    "Run Line",
-                    "Result"
-                ]].to_html(escape=False, index=False),
-                unsafe_allow_html=True
-        )
-
+    if len(used):
+        used_display = used.sort_values("date", ascending=False)
+        st.dataframe(used_display)
     else:
         st.info("No data available")
 
