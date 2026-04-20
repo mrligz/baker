@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import pandas as pd
+import requests
 
 # ============================================================
 # PAGE CONFIG
@@ -163,6 +164,106 @@ def format_team_label(team):
 
     return f"⚾ {team}"
 
+# ========================
+# COLOR CARD HELPER
+# ========================
+def render_stat_card(label, value, pct):
+    if pct >= 55:
+        border = "rgba(0,255,159,0.7)"
+        glow = "rgba(0,255,159,0.35)"
+        color = "#00ff9f"
+    elif pct <= 45:
+        border = "rgba(255,77,77,0.7)"
+        glow = "rgba(255,77,77,0.35)"
+        color = "#ff4d4d"
+    else:
+        border = "rgba(255,255,255,0.08)"
+        glow = "rgba(255,255,255,0)"
+        color = "#9aa4b2"
+
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(145deg, #121a2a, #0d1422);
+        border: 1px solid {border};
+        box-shadow: 0 0 12px {glow};
+        padding: 18px;
+        border-radius: 16px;
+        text-align: center;
+        min-height: 108px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    ">
+        <div style="font-size: 14px; color: #9aa4b2; margin-bottom: 8px;">{label}</div>
+        <div style="font-size: 28px; font-weight: 700; color: {color};">{value}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ============================================================
+# LIVE HELPERS
+# ============================================================
+LIVE_SCHEDULE_URL = "https://statsapi.mlb.com/api/v1/schedule?sportId=1"
+LIVE_GAME_URL = "https://statsapi.mlb.com/api/v1.1/game/{}/feed/live"
+
+def get_live_games():
+    data = requests.get(LIVE_SCHEDULE_URL, timeout=15).json()
+    games = []
+
+    for d in data.get("dates", []):
+        for g in d.get("games", []):
+            if g.get("status", {}).get("abstractGameState") == "Live":
+                games.append({
+                    "gamePk": g["gamePk"],
+                    "home_team": g["teams"]["home"]["team"]["name"],
+                    "away_team": g["teams"]["away"]["team"]["name"],
+                })
+
+    return games
+
+def get_live_game_box(game_pk):
+    data = requests.get(LIVE_GAME_URL.format(game_pk), timeout=15).json()
+
+    linescore = data.get("liveData", {}).get("linescore", {})
+    teams = linescore.get("teams", {})
+
+    home = teams.get("home", {}).get("runs", 0)
+    away = teams.get("away", {}).get("runs", 0)
+
+    inning = linescore.get("currentInning")
+    inning_state = linescore.get("inningState", "")
+    diff = abs(home - away)
+
+    return {
+        "home_runs": home,
+        "away_runs": away,
+        "inning": inning,
+        "inning_state": inning_state,
+        "run_diff": diff,
+    }
+
+def get_previous_bakers_for_team(team_name, df):
+    used = df[df["type"] == "USED_BAKER"].copy()
+    team_used = used[used["team"] == team_name].copy()
+
+    if len(team_used) == 0:
+        return pd.DataFrame()
+
+    cols = [
+        "date",
+        "player_name",
+        "opponent",
+        "IP",
+        "H",
+        "R",
+        "ER",
+        "BB",
+        "K",
+        "HR",
+        "ERA",
+    ]
+    existing = [c for c in cols if c in team_used.columns]
+    return team_used[existing].sort_values("date", ascending=False)
+
 # ============================================================
 # SESSION STATE
 # ============================================================
@@ -199,10 +300,8 @@ cols = st.columns(6)
 for i, team in enumerate(teams):
     col = cols[i % 6]
 
-    # stable selection check
     is_selected = st.session_state.get("selected_team", "All Teams") == team
 
-    # IMPORTANT FIX: store click FIRST, then rerun immediately
     if col.button(
         format_team_label(team),
         key=f"team_{team}",
@@ -218,21 +317,19 @@ for i, team in enumerate(teams):
 # ============================================================
 team_df = df if selected_team == "All Teams" else df[df["team"] == selected_team]
 
-used = team_df[team_df["type"] == "USED_BAKER"]
-faced = team_df[team_df["type"] == "FACED_BAKER"]
-
-if "team_total_vs_baker" not in faced.columns:
-    faced["team_total_vs_baker"] = None
+used = team_df[team_df["type"] == "USED_BAKER"].copy()
+faced = team_df[team_df["type"] == "FACED_BAKER"].copy()
 
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Summary",
     "💰 Run Line (Used)",
     "💰 Run Line (Faced)",
     "📈 Team Total",
-    "📋 Tables & Trends"
+    "📋 Tables & Trends",
+    "🔴 Live"
 ])
 
 # ============================================================
@@ -247,121 +344,128 @@ with tab1:
     c2.metric("Faced Baker", len(faced))
     c3.metric("Runs Scored", int(faced["team_runs_vs_baker"].sum()) if len(faced) else 0)
     c4.metric("Runs Allowed", int(used["R"].sum()) if len(used) else 0)
-    c5.metric("Avg Total", round(faced["team_total_vs_baker"].mean(), 2) if len(faced) else 0)
+    c5.metric("Avg Runs vs Baker", round(faced["team_runs_vs_baker"].mean(), 2) if len(faced) else 0)
 
     st.divider()
 
     st.subheader("📋 Game Logs")
     log_tab1, log_tab2 = st.tabs(["⚾ Used Baker", "🔥 Faced Baker"])
 
-# ============================================================
-# USED LOGS
-# ============================================================
-with log_tab1:
+    # ============================================================
+    # USED LOGS
+    # ============================================================
+    with log_tab1:
+        if len(used) > 0:
+            used_display = used.rename(columns={
+                "date": "Date",
+                "player_name": "Baker",
+                "opponent": "Opponent",
+                "inning_entered": "Inning Entered",
+                "inning_exited": "Inning Exited",
 
-    if len(used) > 0:
+                "IP": "IP",
+                "H": "Hits",
+                "R": "Runs",
+                "ER": "ER",
+                "BB": "BB",
+                "K": "K",
+                "HR": "HR",
+                "ERA": "ERA",
 
-        used_display = used.rename(columns={
-            "date": "Date",
-            "opponent": "Opponent",
-            "player_name": "Baker",
-            "inning_entered": "Inning Entered",
-            "inning_exited": "Inning Exited",
+                "entry_run_diff": "Entry Diff",
+                "final_run_diff": "Final Diff",
+                "run_line": "Run Line",
+                "run_line_result": "Result"
+            })
 
-            "IP": "IP",
-            "H": "Hits",
-            "R": "Runs",
-            "ER": "ER",
-            "BB": "BB",
-            "K": "K",
-            "HR": "HR",
-            "ERA": "ERA",
+            used_display["Opponent"] = used_display["Opponent"].apply(
+                lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
+            )
+            
+            used_display["Baker"] = used_display.apply(
+                lambda row: f"<img src='{get_logo(row['team'])}' width='18' style='vertical-align:middle;margin-right:6px'> {row['Baker']}",
+                axis=1
+            )
 
-            "entry_run_diff": "Entry Diff",
-            "final_run_diff": "Final Diff",
-            "run_line": "Run Line",
-            "run_line_result": "Result"
-        })
+            st.markdown(
+                used_display.sort_values("Date", ascending=False)[
+                    [
+                        "Date",
+                        "Baker",
+                        "Opponent",
+                        "Inning Entered",
+                        "Inning Exited",
 
-        
-        used_display["Opponent"] = used_display["Opponent"].apply(
-            lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
-        )
+                        "IP",
+                        "Hits",
+                        "Runs",
+                        "ER",
+                        "BB",
+                        "K",
+                        "HR",
+                        "ERA",
 
-        st.markdown(
-            used_display.sort_values("Date", ascending=False)[
-                [
+                        "Entry Diff",
+                        "Final Diff",
+                        "Run Line",
+                        "Result"
+                    ]].to_html(escape=False, index=False),
+                unsafe_allow_html=True
+            )
+        else:
+            st.info("No data available")
+
+    # ============================================================
+    # FACED LOGS
+    # ============================================================
+    with log_tab2:
+        if len(faced) > 0:
+            faced_display = faced.rename(columns={
+                "date": "Date",
+                "team": "Team",
+                "opponent": "Opponent",
+                "player_name": "Baker",
+                "team_hits_vs_baker": "Hits",
+                "team_runs_vs_baker": "Runs",
+                "inning_entered": "Inning Entered",
+                "inning_exited": "Inning Exited",
+                "run_line": "Run Line",
+                "run_line_result": "Result",
+            })
+
+            # Build Baker column FIRST, while Opponent is still plain team text
+            faced_display["Baker"] = faced_display.apply(
+                lambda row: f"<img src='{get_logo(row['Opponent'])}' width='18' style='vertical-align:middle;margin-right:6px'> {row['Baker']}"
+                if pd.notna(row["Baker"]) else "",
+                axis=1
+            )
+
+            # Then convert Team and Opponent columns to logo HTML
+            faced_display["Team"] = faced_display["Team"].apply(
+                lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
+            )
+
+            faced_display["Opponent"] = faced_display["Opponent"].apply(
+                lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
+            )
+
+            st.markdown(
+                faced_display.sort_values("Date", ascending=False)[[
                     "Date",
+                    "Team",
                     "Opponent",
                     "Baker",
-                    "Inning Entered",
-                    "Inning Exited",
-
-                    "IP",
                     "Hits",
                     "Runs",
-                    "ER",
-                    "BB",
-                    "K",
-                    "HR",
-                    "ERA",
-
-                    "Entry Diff",
-                    "Final Diff",
+                    "Inning Entered",
+                    "Inning Exited",
                     "Run Line",
                     "Result"
                 ]].to_html(escape=False, index=False),
                 unsafe_allow_html=True
-        )
-
-    else:
-        st.info("No data available")
-
-# ============================================================
-# FACED LOGS
-# ============================================================
-with log_tab2:
-    if len(faced) > 0:
-
-        faced_display = faced.rename(columns={
-            "date": "Date",
-            "team": "Team",
-            "opponent": "Opponent",
-            "team_hits_vs_baker": "Hits",
-            "team_runs_vs_baker": "Runs",
-            "inning_entered": "Inning Entered",
-            "inning_exited": "Inning Exited",
-            "run_line": "Run Line",
-            "run_line_result": "Result",
-            "team_total_vs_baker": "Team Total vs Baker",
-        })
-
-        faced_display["Team"] = faced_display["Team"].apply(
-            lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
-        )
-
-        faced_display["Opponent"] = faced_display["Opponent"].apply(
-            lambda x: f"<img src='{get_logo(x)}' width='18' style='vertical-align:middle;margin-right:6px'> {x}"
-        )
-
-        st.markdown(
-            faced_display.sort_values("Date", ascending=False)[[
-                "Date",
-                "Team",
-                "Opponent",
-                "Hits",
-                "Runs",
-                "Team Total vs Baker",
-                "Inning Entered",
-                "Inning Exited",
-                "Run Line",
-                "Result"
-            ]].to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-
-    else:
-        st.info("No data available")
+            )
+        else:
+            st.info("No data available")
 
 # ============================================================
 # RUN LINE USED
@@ -373,12 +477,17 @@ with tab2:
         total = len(used)
         win = (used["run_line_result"] == "WIN").sum()
         loss = (used["run_line_result"] == "LOSS").sum()
-        push = (used["run_line_result"] == "PUSH").sum()
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Win", f"{win}/{total}")
-        c2.metric("Loss", f"{loss}/{total}")
-        c3.metric("Push", f"{push}/{total}")
+        win_pct = (win / total * 100) if total > 0 else 0
+        loss_pct = (loss / total * 100) if total > 0 else 0
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            render_stat_card("Win", f"{win}/{total} ({win_pct:.0f}%)", win_pct)
+
+        with c2:
+            render_stat_card("Loss", f"{loss}/{total} ({loss_pct:.0f}%)", loss_pct)
 
 # ============================================================
 # RUN LINE FACED
@@ -390,30 +499,47 @@ with tab3:
         total = len(faced)
         win = (faced["run_line_result"] == "WIN").sum()
         loss = (faced["run_line_result"] == "LOSS").sum()
-        push = (faced["run_line_result"] == "PUSH").sum()
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Win", f"{win}/{total}")
-        c2.metric("Loss", f"{loss}/{total}")
-        c3.metric("Push", f"{push}/{total}")
+        win_pct = (win / total * 100) if total > 0 else 0
+        loss_pct = (loss / total * 100) if total > 0 else 0
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            render_stat_card("Win", f"{win}/{total} ({win_pct:.0f}%)", win_pct)
+
+        with c2:
+            render_stat_card("Loss", f"{loss}/{total} ({loss_pct:.0f}%)", loss_pct)
 
 # ============================================================
 # TEAM TOTAL
 # ============================================================
 with tab4:
-    st.subheader("💰 Team Total vs Baker")
+    st.subheader("💰 Team Runs vs Baker")
 
     if len(faced):
         total = len(faced)
 
-        over1 = (faced["team_total_vs_baker"] >= 1).sum()
-        over3 = (faced["team_total_vs_baker"] >= 3).sum()
-        over4 = (faced["team_total_vs_baker"] >= 4).sum()
+        over1 = (faced["team_runs_vs_baker"] >= 1).sum()
+        over2 = (faced["team_runs_vs_baker"] >= 2).sum()
+        over3 = (faced["team_runs_vs_baker"] >= 3).sum()
+
+        p1 = (over1 / total * 100) if total > 0 else 0
+        p2 = (over2 / total * 100) if total > 0 else 0
+        p3 = (over3 / total * 100) if total > 0 else 0
 
         c1, c2, c3 = st.columns(3)
-        c1.metric("Over 0.5", f"{over1}/{total}")
-        c2.metric("Over 2.5", f"{over3}/{total}")
-        c3.metric("Over 3.5", f"{over4}/{total}")
+
+        with c1:
+            render_stat_card("Over 0.5", f"{over1}/{total} ({p1:.0f}%)", p1)
+
+        with c2:
+            render_stat_card("Over 1.5", f"{over2}/{total} ({p2:.0f}%)", p2)
+
+        with c3:
+            render_stat_card("Over 2.5", f"{over3}/{total} ({p3:.0f}%)", p3)
+    else:
+        st.info("No data available")
 
 # ============================================================
 # TRENDS
@@ -426,3 +552,80 @@ with tab5:
 
     if len(used):
         st.line_chart(used.sort_values("date").set_index("date")["R"])
+
+# ============================================================
+# LIVE
+# ============================================================
+with tab6:
+    st.header("🔴 Live Games")
+
+    live_games = get_live_games()
+
+    if not live_games:
+        st.info("No live MLB games right now.")
+    else:
+        for game in live_games:
+            box = get_live_game_box(game["gamePk"])
+
+            home_team = game["home_team"]
+            away_team = game["away_team"]
+
+            home_logo = get_logo(home_team)
+            away_logo = get_logo(away_team)
+
+            highlight = box["run_diff"] >= 8
+            border = "2px solid #ff4d4d" if highlight else "1px solid rgba(255,255,255,0.08)"
+            glow = "0 0 14px rgba(255,77,77,0.35)" if highlight else "none"
+
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(145deg, #121a2a, #0d1422);
+                border: {border};
+                box-shadow: {glow};
+                border-radius: 16px;
+                padding: 16px;
+                margin-bottom: 16px;
+            ">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <img src="{away_logo}" width="34">
+                        <div style="font-size:18px; font-weight:700;">{away_team}</div>
+                        <div style="font-size:24px; font-weight:800;">{box["away_runs"]}</div>
+                    </div>
+
+                    <div style="font-size:16px; color:#9aa4b2;">
+                        {box["inning_state"]} {box["inning"] if box["inning"] else ""}
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="font-size:24px; font-weight:800;">{box["home_runs"]}</div>
+                        <div style="font-size:18px; font-weight:700;">{home_team}</div>
+                        <img src="{home_logo}" width="34">
+                    </div>
+                </div>
+
+                <div style="margin-top:10px; font-size:15px; color:{'#ff4d4d' if highlight else '#9aa4b2'}; font-weight:700;">
+                    Run Differential: {box["run_diff"]}{'  •  Baker Watch' if highlight else ''}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if highlight:
+                st.markdown("#### Previous Bakers")
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown(f"**{away_team}**")
+                    away_prev = get_previous_bakers_for_team(away_team, df)
+                    if len(away_prev):
+                        st.dataframe(away_prev, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No previous Bakers found.")
+
+                with col2:
+                    st.markdown(f"**{home_team}**")
+                    home_prev = get_previous_bakers_for_team(home_team, df)
+                    if len(home_prev):
+                        st.dataframe(home_prev, use_container_width=True, hide_index=True)
+                    else:
+                        st.info("No previous Bakers found.")

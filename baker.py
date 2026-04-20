@@ -124,7 +124,7 @@ def build_dataset(start_date, end_date):
                             continue
 
                         # ----------------------------
-                        # VS BAKER
+                        # VS BAKER (CORRECT)
                         # ----------------------------
                         runs_vs_baker = 0
                         hits_vs_baker = 0
@@ -151,21 +151,23 @@ def build_dataset(start_date, end_date):
                             home_final = final_score["home"]["runs"]
                             away_final = final_score["away"]["runs"]
 
+                            # Baker team perspective for lead size
                             if side == "home":
-                                entry_diff = home_entry - away_entry
-                                final_diff = home_final - away_final
+                                baker_entry_diff_raw = home_entry - away_entry
+                                baker_final_diff_raw = home_final - away_final
                             else:
-                                entry_diff = away_entry - home_entry
-                                final_diff = away_final - home_final
+                                baker_entry_diff_raw = away_entry - home_entry
+                                baker_final_diff_raw = away_final - home_final
 
-                            run_line = entry_diff + 0.5
+                            # show positive lead size
+                            entry_diff = abs(baker_entry_diff_raw)
+                            final_diff = abs(baker_final_diff_raw)
 
-                            if final_diff > run_line:
-                                run_line_result = "WIN"
-                            elif final_diff < run_line:
-                                run_line_result = "LOSS"
-                            else:
-                                run_line_result = "PUSH"
+                            # display betting run line as negative
+                            run_line = -(entry_diff + 0.5)
+
+                            # result = did the lead get bigger?
+                            run_line_result = "WIN" if final_diff > entry_diff else "LOSS"
 
                         else:
                             entry_diff = None
@@ -173,20 +175,7 @@ def build_dataset(start_date, end_date):
                             run_line = None
                             run_line_result = None
 
-                        # ----------------------------
-                        # TEAM TOTAL VS BAKER (NEW ADDITION)
-                        # ----------------------------
-                        team_total_vs_baker = None
-
-                        if entry_score:
-                            if side == "home":
-                                entry_runs = entry_score.get("home", 0)
-                                final_runs = final_score["home"]["runs"]
-                            else:
-                                entry_runs = entry_score.get("away", 0)
-                                final_runs = final_score["away"]["runs"]
-
-                            team_total_vs_baker = final_runs - entry_runs
+                        
 
                         # ----------------------------
                         # USED BAKER
@@ -206,8 +195,11 @@ def build_dataset(start_date, end_date):
                             "R": pitching.get("runs"),
                             "ER": pitching.get("earnedRuns"),
                             "BB": pitching.get("baseOnBalls"),
+
                             "K": pitching.get("strikeOuts"),
+
                             "HR": pitching.get("homeRuns"),
+
                             "ERA": pitching.get("era"),
 
                             "team_hits_vs_baker": hits_vs_baker,
@@ -220,27 +212,27 @@ def build_dataset(start_date, end_date):
                         })
 
                         # ----------------------------
-                        # FACED BAKER
+                        # FACED BAKER (FIXED)
                         # ----------------------------
                         dataset.append({
                             "type": "FACED_BAKER",
                             "date": date_str,
                             "team": opponent,
                             "opponent": team["team"]["name"],
-
+                            "player_name": name,
+                            
                             "inning_entered": window["start_inning"],
                             "inning_exited": window["end_inning"],
 
                             "team_hits_vs_baker": hits_vs_baker,
                             "team_runs_vs_baker": runs_vs_baker,
 
-                            # NEW SAFE METRIC
-                            "team_total_vs_baker": team_total_vs_baker,
-
                             "entry_run_diff": entry_diff,
                             "final_run_diff": final_diff,
                             "run_line": run_line,
                             "run_line_result": run_line_result
+                            
+                            
                         })
 
                 time.sleep(0.2)
