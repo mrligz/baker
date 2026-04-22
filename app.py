@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import pandas as pd
 import requests
+from streamlit_autorefresh import st_autorefresh
 
 # ============================================================
 # PAGE CONFIG
@@ -557,6 +558,17 @@ with tab5:
 # LIVE
 # ============================================================
 with tab6:
+    st_autorefresh(interval=30000, key="live_refresh")
+
+    top1, top2 = st.columns([1, 6])
+
+    with top1:
+        if st.button("🔄 Refresh", use_container_width=True, key="live_refresh_btn"):
+            st.rerun()
+
+    with top2:
+        st.caption("Auto-refresh every 30s")
+
     st.header("🔴 Live Games")
 
     live_games = get_live_games()
@@ -564,68 +576,76 @@ with tab6:
     if not live_games:
         st.info("No live MLB games right now.")
     else:
-        for game in live_games:
-            box = get_live_game_box(game["gamePk"])
+        for i in range(0, len(live_games), 3):
+            row_games = live_games[i:i+3]
+            cols = st.columns(3)
 
-            home_team = game["home_team"]
-            away_team = game["away_team"]
+            for col, game in zip(cols, row_games):
+                with col:
+                    box = get_live_game_box(game["gamePk"])
 
-            home_logo = get_logo(home_team)
-            away_logo = get_logo(away_team)
+                    home_team = game["home_team"]
+                    away_team = game["away_team"]
 
-            highlight = box["run_diff"] >= 8
-            border = "2px solid #ff4d4d" if highlight else "1px solid rgba(255,255,255,0.08)"
-            glow = "0 0 14px rgba(255,77,77,0.35)" if highlight else "none"
+                    home_logo = get_logo(home_team) or ""
+                    away_logo = get_logo(away_team) or ""
 
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(145deg, #121a2a, #0d1422);
-                border: {border};
-                box-shadow: {glow};
-                border-radius: 16px;
-                padding: 16px;
-                margin-bottom: 16px;
-            ">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <img src="{away_logo}" width="34">
-                        <div style="font-size:18px; font-weight:700;">{away_team}</div>
-                        <div style="font-size:24px; font-weight:800;">{box["away_runs"]}</div>
-                    </div>
+                    highlight = box["run_diff"] >= 8
+                    border = "#ff4d4d" if highlight else "rgba(255,255,255,0.08)"
+                    glow = "0 0 10px rgba(255,77,77,0.22)" if highlight else "none"
+                    diff_color = "#ff4d4d" if highlight else "#9aa4b2"
+                    baker_watch = " • Baker Watch" if highlight else ""
+                    inning_text = f"{box['inning_state']} {box['inning']}" if box["inning"] else ""
 
-                    <div style="font-size:16px; color:#9aa4b2;">
-                        {box["inning_state"]} {box["inning"] if box["inning"] else ""}
-                    </div>
+                    st.markdown(f"""<div style="background: linear-gradient(145deg, #121a2a, #0d1422); border: 1px solid {border}; box-shadow: {glow}; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="display:flex; align-items:center; gap:6px; min-width:0;">
+<img src="{away_logo}" width="20">
+<span style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{away_team}</span>
+</div>
+<span style="font-size:18px; font-weight:800;">{box["away_runs"]}</span>
+</div>
 
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="font-size:24px; font-weight:800;">{box["home_runs"]}</div>
-                        <div style="font-size:18px; font-weight:700;">{home_team}</div>
-                        <img src="{home_logo}" width="34">
-                    </div>
-                </div>
+<div style="text-align:center; font-size:12px; color:#9aa4b2; margin: 4px 0;">
+{inning_text}
+</div>
 
-                <div style="margin-top:10px; font-size:15px; color:{'#ff4d4d' if highlight else '#9aa4b2'}; font-weight:700;">
-                    Run Differential: {box["run_diff"]}{'  •  Baker Watch' if highlight else ''}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<div style="display:flex; align-items:center; gap:6px; min-width:0;">
+<img src="{home_logo}" width="20">
+<span style="font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{home_team}</span>
+</div>
+<span style="font-size:18px; font-weight:800;">{box["home_runs"]}</span>
+</div>
 
-            if highlight:
-                st.markdown("#### Previous Bakers")
-                col1, col2 = st.columns(2)
+<div style="margin-top:6px; font-size:12px; color:{diff_color}; font-weight:700; text-align:center;">
+Diff: {box["run_diff"]}{baker_watch}
+</div>
+</div>""", unsafe_allow_html=True)
 
-                with col1:
-                    st.markdown(f"**{away_team}**")
-                    away_prev = get_previous_bakers_for_team(away_team, df)
-                    if len(away_prev):
-                        st.dataframe(away_prev, use_container_width=True, hide_index=True)
-                    else:
-                        st.info("No previous Bakers found.")
+                    if highlight:
+                        with st.expander("Previous Bakers", expanded=False):
+                            away_prev = get_previous_bakers_for_team(away_team, df)
+                            home_prev = get_previous_bakers_for_team(home_team, df)
 
-                with col2:
-                    st.markdown(f"**{home_team}**")
-                    home_prev = get_previous_bakers_for_team(home_team, df)
-                    if len(home_prev):
-                        st.dataframe(home_prev, use_container_width=True, hide_index=True)
-                    else:
-                        st.info("No previous Bakers found.")
+                            prev = pd.concat([
+                                away_prev.assign(_team=away_team) if len(away_prev) else pd.DataFrame(),
+                                home_prev.assign(_team=home_team) if len(home_prev) else pd.DataFrame()
+                            ], ignore_index=True)
+
+                            if len(prev):
+                                cols_to_show = [c for c in ["date", "_team", "player_name", "opponent", "IP", "R"] if c in prev.columns]
+                                prev = prev[cols_to_show].rename(columns={
+                                    "_team": "Team",
+                                    "date": "Date",
+                                    "player_name": "Baker"
+                                })
+
+                                st.dataframe(
+                                    prev,
+                                    use_container_width=True,
+                                    hide_index=True,
+                                    height=150
+                                )
+                            else:
+                                st.info("No previous Bakers found.")
