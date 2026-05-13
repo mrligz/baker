@@ -1024,5 +1024,43 @@
     "final_run_diff": 13,
     "run_line": -10.5,
     "run_line_result": "WIN"
+  },
+  {
+    "type": "USED_BAKER",
+    "date": "2026-05-09",
+    "team": "San Francisco Giants",
+    "opponent": "Pittsburgh Pirates",
+    "player_name": "Christian Koss",
+    "inning_entered": 9,
+    "inning_exited": 9,
+    "IP": "1.0",
+    "H": 5,
+    "R": 3,
+    "ER": 3,
+    "BB": 0,
+    "K": 0,
+    "HR": 0,
+    "ERA": null,
+    "team_hits_vs_baker": 5,
+    "team_runs_vs_baker": 2,
+    "entry_run_diff": 9,
+    "final_run_diff": 10,
+    "run_line": -9.5,
+    "run_line_result": "WIN"
+  },
+  {
+    "type": "FACED_BAKER",
+    "date": "2026-05-09",
+    "team": "Pittsburgh Pirates",
+    "opponent": "San Francisco Giants",
+    "player_name": "Christian Koss",
+    "inning_entered": 9,
+    "inning_exited": 9,
+    "team_hits_vs_baker": 5,
+    "team_runs_vs_baker": 2,
+    "entry_run_diff": 9,
+    "final_run_diff": 10,
+    "run_line": -9.5,
+    "run_line_result": "WIN"
   }
 ]
